@@ -31,12 +31,19 @@
 # App Name.
 $AppNAME = "FindEvents"
 # Version.
-$Ver = "1.1"
+$Ver = "1.2"
     # v 1.0 -- Initial release (24 Jan 2019)
     # v 1.1 -- Codename "I should test my code before initial release" (25 Jan 2019)
     #       - Fixed a copy/paste error that resulted in no output
     #       - Fixed a logic error that didn't remove unnecessary (self-generated) log lines
     #       - Commented out debugging code
+    # v 1.2 -- Codename "Almost as noisy as Kali" (25 Jan 2019)
+    #       - Figured out how to dig out more accurate "systemTime" from the detailed XML of each event
+    #         The side effect is that we now loop through each individual event in addition to each log
+    #         This (very likely, I haven't checked) makes it generate exponentially more logs that before.
+    #         See limitations above, and increase space for all PowerShell logs.
+    #       - Fixed CSV sort order copy/paste error, should actually sort CSV's now. One day I will learn
+    #         how to do quality control testing. Today is not that day.
 
 
 
@@ -190,7 +197,14 @@ function FindEventsClick($object) { # Search Button clicked.
     foreach ($eventLog in $eventLogs) {
         try
         {
-            Get-WinEvent -FilterHashtable @{LogName=$eventLog;StartTime=$StartTime;EndTime=$EndTime} -ErrorAction Stop | Export-CSV $DesktopPath\tmp.csv -Append -NoTypeInformation
+            $Events = Get-WinEvent -FilterHashtable @{LogName=$eventLog;StartTime=$StartTime;EndTime=$EndTime} -ErrorAction Stop #| Export-CSV $DesktopPath\tmp.csv -Append -NoTypeInformation
+            ForEach ($Event in $Events) # GOD BLESS IT! Why isn't a more accurate time exposed with the default output? In what Universe is second granularity acceptable for logs?
+            {                    
+                $eventXML = [xml]$Event.ToXml()
+                Add-Member -InputObject $Event -MemberType NoteProperty -Force -Name "SystemTime" -Value $eventXML.Event.System.TimeCreated.SystemTime
+            }
+            $Event | Export-CSV $DesktopPath\tmp.csv -Append -NoTypeInformation
+            
             #Get-WinEvent -FilterHashtable @{LogName=$eventLog;StartTime=([datetime]'1/22/2019 12:21:00 pm');EndTime=([datetime]'1/22/2019 12:33:00 pm')} -ErrorAction Stop | ConvertTo-Json | Out-File $DesktopPath\yrmp.json -Append
         }
         catch [Exception]
@@ -210,7 +224,7 @@ function FindEventsClick($object) { # Search Button clicked.
     $FileCreateTime = Get-Date -UFormat "%Y%m%d_%H%M%S"
     Import-Csv $DesktopPath\tmp.csv | where {($_.Message -notlike $PathSearch1) -and ($_.Message -notlike $PathSearch2) -and ($_.Message -notlike $PathSearch3) -and ($_.Message -notlike $PathSearch4)} | Export-Csv $DesktopPath\tmp2.csv -NoTypeInformation
     Remove-Item $DesktopPath\tmp.csv
-    Import-Csv $DesktopPath\tmp2.csv | sort username -Descending | Export-Csv -Path $DesktopPath\Logs_Runtime_$fileCreateTime.csv -NoTypeInformation
+    Import-Csv $DesktopPath\tmp2.csv | sort SystemTime | Export-Csv -Path $DesktopPath\Logs_Runtime_$fileCreateTime.csv -NoTypeInformation
     Remove-Item $DesktopPath\tmp2.csv
     $FindEventsButton.Enabled = $true # Enable Search button
     } # <== SearchButtonClick
