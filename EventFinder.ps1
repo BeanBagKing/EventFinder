@@ -31,7 +31,15 @@
 # App Name.
 $AppNAME = "FindEvents"
 # Version.
-$Ver = "1.0"
+$Ver = "1.1"
+    # v 1.0 -- Initial release (24 Jan 2019)
+    # v 1.1 -- Codename "I should test my code before initial release" (25 Jan 2019)
+    #       - Fixed a copy/paste error that resulted in no output
+    #       - Fixed a logic error that didn't remove unnecessary (self-generated) log lines
+    #       - Commented out debugging code
+
+
+
 # Set some global variables
 $DesktopPath = [Environment]::GetFolderPath("Desktop")
  
@@ -176,8 +184,8 @@ function FindEventsClick($object) { # Search Button clicked.
     $StartTime = $StartInput.Text
     $EndTime = $EndInput.Text
  
-    Write-Host $StartTime
-    Write-Host $EndTime
+    #Write-Host $StartTime
+    #Write-Host $EndTime
  
     foreach ($eventLog in $eventLogs) {
         try
@@ -200,9 +208,9 @@ function FindEventsClick($object) { # Search Button clicked.
     $PathSearch3 = "*Path: $PSCommandPath*"
     $PathSearch4 = "*CommandPath=$PSCommandPath*"
     $FileCreateTime = Get-Date -UFormat "%Y%m%d_%H%M%S"
-    Import-Csv $DesktopPath\tmp.csv | where {$_.Message -notlike $PathSearch1,$PathSearch2,$PathSearch3,$PathSearch4} | Export-Csv $DesktopPath\tmp2.csv -NoTypeInformation
+    Import-Csv $DesktopPath\tmp.csv | where {($_.Message -notlike $PathSearch1) -and ($_.Message -notlike $PathSearch2) -and ($_.Message -notlike $PathSearch3) -and ($_.Message -notlike $PathSearch4)} | Export-Csv $DesktopPath\tmp2.csv -NoTypeInformation
     Remove-Item $DesktopPath\tmp.csv
-    Import-Csv Export-Csv $DesktopPath\tmp2.csv | sort username -Descending | Export-Csv -Path $DesktopPath\Logs_Runtime_$fileCreateTime.csv -NoTypeInformation
+    Import-Csv $DesktopPath\tmp2.csv | sort username -Descending | Export-Csv -Path $DesktopPath\Logs_Runtime_$fileCreateTime.csv -NoTypeInformation
     Remove-Item $DesktopPath\tmp2.csv
     $FindEventsButton.Enabled = $true # Enable Search button
     } # <== SearchButtonClick
