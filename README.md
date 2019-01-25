@@ -26,3 +26,6 @@ via logs what this malware did and in what order, which may be used to create IO
 * Click the End Time button -  At this point (or any other), the time periods can be manually adjusted
 * Click Find Events
 * Wait while the program generates a CSV of found events on the current desktop - File name will be "Logs_Runtime_\<datestamp>_\<runtime>.csv"
+
+# Screenshot Time!
+![EventFinder](https://raw.githubusercontent.com/BeanBagKing/EventFinder/master/EventFinder.png)
