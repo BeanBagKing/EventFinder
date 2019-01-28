@@ -1,5 +1,6 @@
 # EventFinder has been superseded! 
 Check out the new version: https://github.com/BeanBagKing/EventFinder2
+
 EventFinder 2.0 was re-written in C# to avoid the massive number of PowerShell logs. I'm leaving this version for reference and as an alternative, but I highly suggest checking out the new version.
 
 ### EventFinder
